@@ -1,21 +1,27 @@
-import { Router } from 'next/router';
 import type { AppProps } from 'next/app'
 import Head from 'next/head'
 import { ChakraProvider } from '@chakra-ui/react'
 import NProgress from 'nprogress';
+import "nprogress/nprogress.css";
 import Layout from '@/layout'
+import { useEffect } from 'react';
 
-export default function App({ Component, pageProps }: AppProps) {
+export default function App({ Component, pageProps, router }: AppProps) {
 
-  NProgress.configure({ showSpinner: false });
+  useEffect(() => {
+    const handleRouteStart = () => NProgress.start();
+    const handleRouteDone = () => NProgress.done();
 
-  Router.events.on('routeChangeStart', () => {
-    NProgress.start();
-  });
+    router.events.on("routeChangeStart", handleRouteStart);
+    router.events.on("routeChangeComplete", handleRouteDone);
+    router.events.on("routeChangeError", handleRouteDone);
 
-  Router.events.on('routeChangeComplete', () => {
-    NProgress.done();
-  });
+    return () => {
+      router.events.off("routeChangeStart", handleRouteStart);
+      router.events.off("routeChangeComplete", handleRouteDone);
+      router.events.off("routeChangeError", handleRouteDone);
+    };
+  }, []);
 
   return (
     <>
